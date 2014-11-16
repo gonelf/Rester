@@ -1,5 +1,8 @@
 <?php
 
+// remove this line to see errors and warnings
+error_reporting(0);
+
 //The api version, must have a php file on versions folder to include
 define('API_VERSION', "1.0.0");
 
