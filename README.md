@@ -92,7 +92,9 @@ Please note that `GET` calls accept the following query string variables:
 
 ##Changelog
 
-- **beta** ~~Reaching beta stage~~
+#22-11-14
+- commented OAuth 1.0 authentication, replaced with simple header token per user on DB
+- added results filtered by user, so users only get access to what they created (see cofig.sample.php)
 
 ##Credits
 Rester is a nearly complete rewrite of [ArrestDB](ArrestDB: https://github.com/alixaxel/ArrestDB) with many additional features.
@@ -100,4 +102,4 @@ ArrestDB is a complete rewrite of [Arrest-MySQL](https://github.com/gilbitron/Ar
 
 ##License (MIT)
 
-Copyright (c) 2014 mOddity Mobile S.L. (http://www.moddity.net)
+

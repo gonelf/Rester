@@ -58,6 +58,7 @@ class OAuthStorePDO extends OAuthStoreSQL
 			try 
 			{
 				$this->conn = new PDO($options['dsn'], $options['username'], @$options['password']);
+				throw new OAuthException2('connect to PDO database: ');
 			}
 			catch (PDOException $e) 
 			{

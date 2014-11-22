@@ -11,7 +11,7 @@ $loginCommand = new RouteCommand("POST", "users", "login", function($params = NU
 	$filter["login"]=$params["login"];
 	$filter["password"]=md5($params["password"]);
 	
-	$result = $resterController->getObjectsFromRouteName("usuarios", $filter);
+	$result = $resterController->getObjectsFromRouteName("user", $filter);
 
 	$resterController->showResult($result);
 	

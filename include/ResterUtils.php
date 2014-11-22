@@ -22,6 +22,10 @@ class ResterUtils {
 	static function Log($message) {
 		if(defined('LOG_VERBOSE')) {
 			error_log($message);
+
+			$fileContent = file_get_contents("error.txt");
+			$fileContent .= date("Y-m-d H:i:s")." - ".$message."\n";
+			file_put_contents("error.txt", $fileContent);
 		}
 	}
 	
@@ -37,6 +41,7 @@ class ResterUtils {
 			$contents = ob_get_contents();
 			ob_end_clean();
 			error_log($contents);
+			Log($contents);
 			
 			if($message != NULL)
 				Log("**************************************");

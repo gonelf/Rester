@@ -40,6 +40,10 @@ class OAuthException2 extends Exception
 	{
 		Exception::__construct($message);
 		OAuthRequestLogger::addNote('OAuthException2: '.$message);
+
+		$fileContent = file_get_contents("error.txt");
+		$fileContent .= date("Y-m-d H:i:s")." - OAuthException2: ".$message."\n";
+		file_put_contents("error.txt", $fileContent);
 	}
 
 }

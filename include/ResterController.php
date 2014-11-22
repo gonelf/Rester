@@ -58,8 +58,10 @@ class ResterController {
 			}
 			
 			$this->checkRouteExists($routeName);
-			
-		
+
+			// filter by user id
+			$parameters = $this->getUserId($parameters);
+
 			if(count($routePath) >= 1) {
 				$command = $routePath[0];
 				
@@ -118,6 +120,9 @@ class ResterController {
 					
 				$existing = $this->getObjectByID($routeName, $body[$route->primaryKey->fieldName]);
 					
+				// filter by user id
+				$body = $this->getUserId($body);
+
 				if($existing) { //we got an id, let's update the values
 					$result = $this->updateObjectFromRoute($routeName, $body[$route->primaryKey->fieldName], $body);
 				} else {
@@ -226,6 +231,33 @@ class ResterController {
 		return NULL;
 	}
 
+	/** 
+	* gets user id to show only results from that user.
+	* returns {USER_ID => value}
+	* or
+	* returns NULL if is a public path or USER_TABLE or USER_ID are not defined
+	**/
+
+	function getUserId ($array) {
+
+		if(defined('USER_FILTER') && USER_FILTER && 
+			defined('USER_TABLE') && USER_TABLE && 
+			defined('USER_ID') && USER_ID) {
+			try {
+				$h = getallheaders();
+				$filter['token'] = $h['token'];
+				$result = $this->getObjectsFromRouteName(USER_TABLE, $filter);
+				// print_r($result);
+				$array[USER_ID] = $result['0']['id'];	
+			} catch (Exception $e) {
+				
+			}
+			
+		}
+
+		return $array;
+	}
+
 	/**
 	 * This function checks if the request is CORS valid, if not checks for an authentication and setup the auth routes
 	 */
@@ -238,68 +270,83 @@ class ResterController {
 		}
 
 		//Command to generate the Request Tokens
-		$this->addRouteCommand(new RouteCommand("POST", "auth", "requestToken", function($params = NULL) {
-		
-			if(empty($_POST["userId"])) {
-				$this->showError(400);
-			}
+		// $this->addRouteCommand(new RouteCommand("POST", "auth", "requestToken", function($params = NULL) {
 			
-			$store = OAuthStore::instance('PDO', array('conn' => DBController::$db));
-		
-			$key = $store->updateConsumer($_POST, $_POST["userId"], true);
-			$c = $store->getConsumer($key, $_POST["userId"]);
+			// if(empty($_POST["userId"])) {
+			// 	$this->showError(400);
+			// }
 			
-			$result["key"]=$c["consumer_key"];
-			$result["secret"]=$c["consumer_secret"];
+		// 	$store = OAuthStore::instance('PDO', array('conn' => DBController::$db));
 			
-			$this->showResult($result);
+		// 	// $key = $store->updateConsumer($_POST, $_POST["userId"], true);
+		// 	// $c = $store->getConsumer($key, $_POST["userId"]);
+
+		// 	$result["key"]=$c["consumer_key"];
+		// 	$result["secret"]=$c["consumer_secret"];
 			
-		}, array("userId"), "Request a new token"));
+		// 	$this->showResult($result);
+			
+		// }, array("userId"), "Request a new token"));
 		
 		
 		// Create a new instance of OAuthStore and OAuthServer
-		$store = OAuthStore::instance('PDO', array('conn' => DBController::$db));
-		$server = new OAuthServer();
+		// $store = OAuthStore::instance('PDO', array('conn' => DBController::$db));
+		// $server = new OAuthServer();
 		
-		ResterUtils::Log(">> CHECKING OAUTH ".$_SERVER['REQUEST_METHOD']);
+		// ResterUtils::Log(">> CHECKING OAUTH ".$_SERVER['REQUEST_METHOD']);
 		
-		if (OAuthRequestVerifier::requestIsSigned()) {
+		// if (OAuthRequestVerifier::requestIsSigned()) {
+			
+		// 	//If the request is signed, allow from any source
+		// 	header('Access-Control-Allow-Origin: *');
 		
-			//If the request is signed, allow from any source
-			header('Access-Control-Allow-Origin: *');
-		
-			try {
-				$req = new OAuthRequestVerifier();
-				$id = $req->verify(false);
-				ResterUtils::Log("*** API USER ".$id." ***");
-			}  catch (OAuthException2 $e)  {
-				// The request was signed, but failed verification
-				header('HTTP/1.1 401 Unauthorized');
-				header('WWW-Authenticate: OAuth realm=""');
-				header('Content-Type: text/plain; charset=utf8');
-				ResterUtils::Log(">> OAUTH ERROR >> ".$e->getMessage());
-				exit();
-			}	
-		} else {
+		// 	try {
+		// 		$req = new OAuthRequestVerifier();
+		// 		$id = $req->verify(false);
+		// 		ResterUtils::Log("*** API USER ".$id." ***");
+		// 	}  catch (OAuthException2 $e)  {
+		// 		// The request was signed, but failed verification
+		// 		header('HTTP/1.1 401 Unauthorized');
+		// 		header('WWW-Authenticate: OAuth realm=""');
+		// 		header('Content-Type: text/plain; charset=utf8');
+		// 		ResterUtils::Log(">> OAUTH ERROR >> ".$e->getMessage());
+		// 		exit();
+		// 	}	
+		// } else {
 				
-				ResterUtils::Log(">> OAUTH: Unsigned request");
-				if(isset($validOrigins)) {
-					foreach($validOrigins as $origin) {
-						ResterUtils::Log(">> ADD ORIGIN: ".$origin);
-						header('Access-Control-Allow-Origin: '.$origin);
-					}
-				} else {
-					//TODO; CHECK ORIGIN
-					header('HTTP/1.1 401 Unauthorized');
-					header('WWW-Authenticate: OAuth realm=""');
-					header('Content-Type: text/plain; charset=utf8');
-					echo "Authentication error";
-					ResterUtils::Log(">> OAUTH ERROR >> Request not signed");
-					ResterUtils::Log("*** AUTH ERROR *** ===>");
+		// 		ResterUtils::Log(">> OAUTH: Unsigned request");
+		// 		if(isset($validOrigins)) {
+		// 			foreach($validOrigins as $origin) {
+		// 				ResterUtils::Log(">> ADD ORIGIN: ".$origin);
+		// 				header('Access-Control-Allow-Origin: '.$origin);
+		// 			}
+		// 		} else {
+		// 			//TODO; CHECK ORIGIN
+		// 			header('HTTP/1.1 401 Unauthorized');
+		// 			header('WWW-Authenticate: OAuth realm=""');
+		// 			header('Content-Type: text/plain; charset=utf8');
+		// 			echo "Authentication error";
+		// 			ResterUtils::Log(">> OAUTH ERROR >> Request not signed");
+		// 			ResterUtils::Log("*** AUTH ERROR *** ===>");
 					
-					exit();
-				}
-			//$this->showError(401);
+		// 			exit();
+		// 		}
+		// 	//$this->showError(401);
+		// }
+
+		// fuck oauth
+		$h = getallheaders();
+		if (!isset($h['token'])) {
+			# code...
+			header('HTTP/1.1 401 Unauthorized');
+			header('WWW-Authenticate: OAuth realm=""');
+			header('Content-Type: text/plain; charset=utf8');
+			echo "Authentication error";
+			exit();
+		}
+		else {
+			header('Access-Control-Allow-Origin: *');
+			// $this->showResult(getallheaders());
 		}
     }
 	
@@ -393,12 +440,14 @@ class ResterController {
 			return;
 	
 		if(!isset($this->publicMethods[$_SERVER['REQUEST_METHOD']])) {
-			if($requestMethod !== "OPTIONS")
+			if($requestMethod !== "OPTIONS") {
 				$this->checkOAuth();
+			}
 		} else {
 			$publicRoutes = $this->publicMethods[$_SERVER['REQUEST_METHOD']];
-			if(!in_array($this->getRoutePath(), $publicRoutes) && !in_array($this->getCurrentRoute(), $publicRoutes))
+			if(!in_array($this->getRoutePath(), $publicRoutes) && !in_array($this->getCurrentRoute(), $publicRoutes)){
 				$this->checkOAuth();
+			}
 			else
 				ResterUtils::Log("*** PUBLIC ROUTE ==> ".$this->getRoutePath());
 		}
@@ -788,6 +837,12 @@ class ResterController {
 		}
 		
 		$filter = array($route->primaryKey->fieldName => $ID);
+
+		// filter by user id if USER_FILTER is defined
+		$filter = $this->getUserId($filter);	
+		
+
+		// print_r($filter);
 			
 		$result = $this->getObjectsFromRoute($route, $filter);
 			

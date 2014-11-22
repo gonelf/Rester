@@ -43,6 +43,28 @@ if(defined('API_VERSION') && file_exists(__DIR__."/versions/".API_VERSION.".php"
 	include(__DIR__."/versions/".API_VERSION.".php");
 }
 
+// custom methods
+$loginCommand = new RouteCommand("POST", "users", "login", function($params = NULL) {
+	
+	global $resterController;
+	
+	$filter["name"]=$params["name"];
+	// $filter["password"]=md5($params["password"]);
+	$filter["password"]=$params["password"];
+	
+	$result = $resterController->getObjectsFromRouteName("user", $filter);
+
+	$resterController->showResult($result);
+	
+}, array("login", "password"), "Method to login users");
+
+
+//Add the command to controller
+$resterController->addRouteCommand($loginCommand);
+
+//Disable oauth authentication for certain routes
+$resterController->addPublicMethod("POST", "users/login");
+
 //Do the work
 $resterController->processRequest($_SERVER['REQUEST_METHOD']);
 
