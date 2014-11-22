@@ -92,7 +92,7 @@ Please note that `GET` calls accept the following query string variables:
 
 ##Changelog
 
-#22-11-14
+###22-11-14
 - commented OAuth 1.0 authentication, replaced with simple header token per user on DB
 - added results filtered by user, so users only get access to what they created (see cofig.sample.php)
 
